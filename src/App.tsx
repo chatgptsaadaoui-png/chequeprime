@@ -145,19 +145,25 @@ export default function App() {
     setIsLoading(true);
     try {
       const headers = { 'x-user-id': user.id };
-      const [clientsRes, suppliersRes, checksRes, chartRes] = await Promise.all([
+      const responses = await Promise.all([
         fetch('/api/clients', { headers }),
         fetch('/api/suppliers', { headers }),
         fetch('/api/checks', { headers }),
         fetch('/api/stats/chart', { headers })
       ]);
 
-      const [clientsData, suppliersData, checksData, chartData] = await Promise.all([
-        clientsRes.json(),
-        suppliersRes.json(),
-        checksRes.json(),
-        chartRes.json()
-      ]);
+      // Check if all responses are OK
+      for (const res of responses) {
+        if (!res.ok) {
+          const text = await res.text();
+          console.error('Server error response:', text);
+          throw new Error(`Server returned ${res.status}: ${text.substring(0, 100)}`);
+        }
+      }
+
+      const [clientsData, suppliersData, checksData, chartData] = await Promise.all(
+        responses.map(res => res.json())
+      );
 
       const normalizedChecks = (Array.isArray(checksData) ? checksData : []).map((check: any) => ({
         ...check,

@@ -2,13 +2,6 @@ import express from 'express';
 import { createClient } from '@supabase/supabase-js';
 import cors from 'cors';
 import path from 'path';
-import { fileURLToPath } from 'url';
-import dotenv from 'dotenv';
-
-dotenv.config();
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL || '';
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || '';
@@ -25,10 +18,24 @@ export async function createServer() {
 
   // Middleware to check Supabase configuration
   app.use((req, res, next) => {
+    if (req.path === '/api/health') return next();
     if (!supabase) {
       return res.status(500).json({ error: 'Supabase environment variables are missing' });
     }
     next();
+  });
+
+  // Health check route
+  app.get('/api/health', (req, res) => {
+    res.json({ 
+      status: 'ok', 
+      supabaseConfigured: !!supabase,
+      env: {
+        hasUrl: !!process.env.VITE_SUPABASE_URL,
+        hasAnon: !!process.env.VITE_SUPABASE_ANON_KEY,
+        hasService: !!process.env.SUPABASE_SERVICE_ROLE_KEY
+      }
+    });
   });
 
   // API Routes
@@ -237,7 +244,7 @@ export async function createServer() {
     app.use(vite.middlewares);
   } else {
     // In production (including Vercel), serve static files
-    const distPath = path.join(__dirname, 'dist');
+    const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
     app.get('*', (req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
@@ -247,8 +254,18 @@ export async function createServer() {
   return app;
 }
 
-// Only start the server if this file is run directly
-if (import.meta.url === `file://${process.argv[1]}` || process.env.NODE_ENV === 'development') {
+// Export for Vercel
+let cachedApp: any;
+
+export default async (req: any, res: any) => {
+  if (!cachedApp) {
+    cachedApp = await createServer();
+  }
+  return cachedApp(req, res);
+};
+
+// Start server locally
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
   createServer().then(app => {
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, '0.0.0.0', () => {
@@ -256,9 +273,3 @@ if (import.meta.url === `file://${process.argv[1]}` || process.env.NODE_ENV === 
     });
   });
 }
-
-// Export for Vercel
-export default async (req: any, res: any) => {
-  const app = await createServer();
-  return app(req, res);
-};
