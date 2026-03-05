@@ -44,6 +44,7 @@ import {
   Bar
 } from 'recharts';
 import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 import { cn } from './lib/utils';
 import { Check, NavItem, Client, Supplier } from './types';
 import { translations, Language } from './translations';
@@ -609,48 +610,67 @@ export default function App() {
         </div>
       </aside>
 
+      <BottomNav activeTab={activeTab} onTabChange={setActiveTab} t={t} />
+
       {/* Main Content */}
       <main className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <header className="h-16 border-b border-slate-200 bg-white flex items-center justify-between px-4 md:px-8 shrink-0">
-          <div className="flex items-center gap-4">
+        <header className="h-16 md:h-20 border-b border-slate-200 bg-white/80 backdrop-blur-md sticky top-0 z-40 flex items-center justify-between px-4 md:px-8 shrink-0">
+          <div className="flex items-center gap-3 md:gap-4">
             <button 
               onClick={() => setIsSidebarOpen(true)}
-              className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg md:hidden"
+              className="p-2 text-slate-600 hover:bg-slate-100 rounded-xl md:hidden active:scale-95 transition-all"
             >
               <Menu size={20} />
             </button>
-            <h1 className="text-lg font-bold text-slate-900 truncate">
-              {NAV_ITEMS(t).find(i => i.id === activeTab)?.title || t('dashboard')}
-            </h1>
+            <div className="flex flex-col">
+              <h1 className="text-base md:text-xl font-black text-slate-900 truncate tracking-tight">
+                {NAV_ITEMS(t).find(i => i.id === activeTab)?.title || t('dashboard')}
+              </h1>
+              <p className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest hidden sm:block">
+                {format(new Date(), 'EEEE, d MMMM', { locale: language === 'fr' ? fr : undefined })}
+              </p>
+            </div>
           </div>
 
           <div className="flex items-center gap-2 lg:gap-4">
-            <div className="relative hidden sm:block">
+            <div className="relative hidden lg:block">
               <Search className={cn("absolute top-1/2 -translate-y-1/2 text-slate-400", isRTL ? "right-3" : "left-3")} size={18} />
               <input 
                 type="text" 
                 placeholder={t('search')}
                 className={cn(
-                  "py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 w-48 lg:w-64 transition-all",
+                  "py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 w-48 lg:w-64 transition-all",
                   isRTL ? "pr-10 pl-4" : "pl-10 pr-4"
                 )}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <button className="p-2 text-slate-500 hover:bg-slate-100 rounded-lg relative group">
-              <Bell size={20} className="group-hover:scale-110 transition-transform" />
-              <span className={cn(
-                "absolute top-1.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-white",
-                isRTL ? "left-1.5" : "right-1.5"
-              )}></span>
-            </button>
+            <div className="flex items-center gap-1 md:gap-2">
+              <button className="p-2 text-slate-500 hover:bg-slate-100 rounded-xl relative group active:scale-95 transition-all">
+                <Bell size={20} className="group-hover:rotate-12 transition-transform" />
+                <span className={cn(
+                  "absolute top-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white",
+                  isRTL ? "left-2" : "right-2"
+                )}></span>
+              </button>
+              <div className="w-px h-6 bg-slate-200 mx-1 hidden sm:block" />
+              <div className="flex items-center gap-3 pl-2 hidden sm:flex">
+                <div className="text-right">
+                  <p className="text-xs font-bold text-slate-900 leading-none">{user?.email?.split('@')[0]}</p>
+                  <p className="text-[10px] font-bold text-brand-600 uppercase tracking-widest mt-1">Admin</p>
+                </div>
+                <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400 border border-slate-200">
+                  <UserCircle size={24} />
+                </div>
+              </div>
+            </div>
           </div>
         </header>
 
         {/* Scrollable Area */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-8">
+        <div className="flex-1 overflow-y-auto p-4 md:p-8 pb-24 md:pb-8">
           <AnimatePresence mode="wait">
             {activeTab === 'supplier-checks' && (
               <motion.div
@@ -765,102 +785,121 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Detailed Table */}
-                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-start border-collapse">
-                      <thead>
-                        <tr className="bg-slate-50/50">
-                          <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">{t('dates')}</th>
-                          <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-start">{t('numType')}</th>
-                          <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-start">{t('tierBank')}</th>
-                          <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-start">{t('causeMotif')}</th>
-                          <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-end">{t('amount')}</th>
-                          <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">{t('status')}</th>
-                          <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">{t('actions')}</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        {paginatedSupplierChecks.map((check) => (
-                          <tr key={check.id} className="hover:bg-slate-50/50 transition-colors group">
-                            <td className="px-6 py-4">
-                              <div className="space-y-1">
-                                {check.paymentDate && (
-                                  <p className="text-[10px] text-slate-400 uppercase font-medium">
-                                    Date de paiement: {format(new Date(check.paymentDate), 'dd/MM/yyyy')}
-                                  </p>
-                                )}
-                                <p className="text-xs font-semibold text-slate-700">
-                                  Échéance: {format(new Date(check.dueDate), 'dd/MM/yyyy')}
-                                </p>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4">
-                              <span className="text-sm font-bold text-slate-900">{check.number}</span>
-                            </td>
-                            <td className="px-6 py-4">
-                              <span className="text-sm font-semibold text-brand-600">{check.beneficiary}</span>
-                            </td>
-                            <td className="px-6 py-4">
-                              <span className="text-sm text-slate-500 font-mono">{check.cause || '-'}</span>
-                            </td>
-                            <td className="px-6 py-4 text-right">
-                              <span className="text-sm font-bold text-slate-900">{check.amount.toLocaleString()} DH</span>
-                            </td>
-                            <td className="px-6 py-4 text-center">
-                              <StatusBadge status={check.status} t={t} />
-                            </td>
-                            <td className="px-6 py-4 text-center">
-                              <div className="flex items-center justify-center gap-1">
-                                <button 
-                                  onClick={() => {
-                                    setEditingCheck(check);
-                                    setIsAddModalOpen(true);
-                                  }}
-                                  className="p-2 text-blue-500 hover:bg-blue-50 rounded-xl transition-all"
-                                  title="Modifier"
-                                >
-                                  <Edit size={16} />
-                                </button>
-                                <button 
-                                  onClick={() => handleDeleteCheck(check.id)}
-                                  className="p-2 text-rose-500 hover:bg-rose-50 rounded-xl transition-all"
-                                  title="Supprimer"
-                                >
-                                  <Trash2 size={16} />
-                                </button>
-                                <div className="w-px h-4 bg-slate-100 mx-1" />
-                                <div className="relative">
-                                  <button className="p-2 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-xl transition-all">
-                                    <RefreshCw size={16} />
-                                  </button>
-                                  <select 
-                                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
-                                    value={check.status}
-                                    onChange={(e) => handleUpdateCheckStatus(check.id, e.target.value as any)}
-                                    title="Changer le statut"
-                                  >
-                                    <option value="pending">Encours</option>
-                                    <option value="paid">Encaissé</option>
-                                    <option value="cancelled">Impayé</option>
-                                  </select>
-                                </div>
-                              </div>
-                            </td>
+                {/* Detailed Table / Mobile Cards */}
+                <div className="space-y-4">
+                  <div className="hidden md:block bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-start border-collapse">
+                        <thead>
+                          <tr className="bg-slate-50/50">
+                            <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">{t('dates')}</th>
+                            <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-start">{t('numType')}</th>
+                            <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-start">{t('tierBank')}</th>
+                            <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-start">{t('causeMotif')}</th>
+                            <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-end">{t('amount')}</th>
+                            <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">{t('status')}</th>
+                            <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">{t('actions')}</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {paginatedSupplierChecks.map((check) => (
+                            <tr key={check.id} className="hover:bg-slate-50/50 transition-colors group">
+                              <td className="px-6 py-4">
+                                <div className="space-y-1">
+                                  {check.paymentDate && (
+                                    <p className="text-[10px] text-slate-400 uppercase font-medium">
+                                      Date de paiement: {format(new Date(check.paymentDate), 'dd/MM/yyyy')}
+                                    </p>
+                                  )}
+                                  <p className="text-xs font-semibold text-slate-700">
+                                    Échéance: {format(new Date(check.dueDate), 'dd/MM/yyyy')}
+                                  </p>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4">
+                                <span className="text-sm font-bold text-slate-900">{check.number}</span>
+                              </td>
+                              <td className="px-6 py-4">
+                                <span className="text-sm font-semibold text-brand-600">{check.beneficiary}</span>
+                              </td>
+                              <td className="px-6 py-4">
+                                <span className="text-sm text-slate-500 font-mono">{check.cause || '-'}</span>
+                              </td>
+                              <td className="px-6 py-4 text-right">
+                                <span className="text-sm font-bold text-slate-900">{check.amount.toLocaleString()} DH</span>
+                              </td>
+                              <td className="px-6 py-4 text-center">
+                                <StatusBadge status={check.status} t={t} />
+                              </td>
+                              <td className="px-6 py-4 text-center">
+                                <div className="flex items-center justify-center gap-1">
+                                  <button 
+                                    onClick={() => {
+                                      setEditingCheck(check);
+                                      setIsAddModalOpen(true);
+                                    }}
+                                    className="p-2 text-blue-500 hover:bg-blue-50 rounded-xl transition-all"
+                                    title="Modifier"
+                                  >
+                                    <Edit size={16} />
+                                  </button>
+                                  <button 
+                                    onClick={() => handleDeleteCheck(check.id)}
+                                    className="p-2 text-rose-500 hover:bg-rose-50 rounded-xl transition-all"
+                                    title="Supprimer"
+                                  >
+                                    <Trash2 size={16} />
+                                  </button>
+                                  <div className="w-px h-4 bg-slate-100 mx-1" />
+                                  <div className="relative">
+                                    <button className="p-2 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-xl transition-all">
+                                      <RefreshCw size={16} />
+                                    </button>
+                                    <select 
+                                      className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
+                                      value={check.status}
+                                      onChange={(e) => handleUpdateCheckStatus(check.id, e.target.value as any)}
+                                      title="Changer le statut"
+                                    >
+                                      <option value="pending">Encours</option>
+                                      <option value="paid">Encaissé</option>
+                                      <option value="cancelled">Impayé</option>
+                                    </select>
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    <div className="p-6 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Montant Total:</span>
+                        <span className="text-sm font-bold text-brand-600">{totalSupplierValue.toLocaleString()} DH</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Aucun enregistrement trouvé:</span>
+                        <span className="text-sm font-bold text-slate-900">{supplierChecks.length}</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="p-6 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Montant Total:</span>
-                      <span className="text-sm font-bold text-brand-600">{totalSupplierValue.toLocaleString()} DH</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Aucun enregistrement trouvé:</span>
-                      <span className="text-sm font-bold text-slate-900">{supplierChecks.length}</span>
-                    </div>
+
+                  {/* Mobile Cards */}
+                  <div className="grid grid-cols-1 gap-4 md:hidden">
+                    {paginatedSupplierChecks.map(check => (
+                      <MobileCheckCard 
+                        key={check.id}
+                        check={check}
+                        onEdit={(c) => {
+                          setEditingCheck(c);
+                          setIsAddModalOpen(true);
+                        }}
+                        onDelete={handleDeleteCheck}
+                        onUpdateStatus={handleUpdateCheckStatus}
+                        t={t}
+                      />
+                    ))}
                   </div>
                 </div>
                 <Pagination 
@@ -984,102 +1023,121 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Detailed Table */}
-                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-start border-collapse">
-                      <thead>
-                        <tr className="bg-slate-50/50">
-                          <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">{t('dates')}</th>
-                          <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-start">{t('numType')}</th>
-                          <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-start">{t('tierBank')}</th>
-                          <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-start">{t('causeMotif')}</th>
-                          <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-end">{t('amount')}</th>
-                          <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">{t('status')}</th>
-                          <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">{t('actions')}</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        {paginatedClientChecks.map((check) => (
-                          <tr key={check.id} className="hover:bg-slate-50/50 transition-colors group">
-                            <td className="px-6 py-4">
-                              <div className="space-y-1">
-                                {check.paymentDate && (
-                                  <p className="text-[10px] text-slate-400 uppercase font-medium">
-                                    Date de paiement: {format(new Date(check.paymentDate), 'dd/MM/yyyy')}
-                                  </p>
-                                )}
-                                <p className="text-xs font-semibold text-slate-700">
-                                  Échéance: {format(new Date(check.dueDate), 'dd/MM/yyyy')}
-                                </p>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4">
-                              <span className="text-sm font-bold text-slate-900">{check.number}</span>
-                            </td>
-                            <td className="px-6 py-4">
-                              <span className="text-sm font-semibold text-brand-600">{check.beneficiary}</span>
-                            </td>
-                            <td className="px-6 py-4">
-                              <span className="text-sm text-slate-500 font-mono">{check.cause || '-'}</span>
-                            </td>
-                            <td className="px-6 py-4 text-right">
-                              <span className="text-sm font-bold text-slate-900">{check.amount.toLocaleString()} DH</span>
-                            </td>
-                            <td className="px-6 py-4 text-center">
-                              <StatusBadge status={check.status} t={t} />
-                            </td>
-                            <td className="px-6 py-4 text-center">
-                              <div className="flex items-center justify-center gap-1">
-                                <button 
-                                  onClick={() => {
-                                    setEditingCheck(check);
-                                    setIsAddModalOpen(true);
-                                  }}
-                                  className="p-2 text-blue-500 hover:bg-blue-50 rounded-xl transition-all"
-                                  title="Modifier"
-                                >
-                                  <Edit size={16} />
-                                </button>
-                                <button 
-                                  onClick={() => handleDeleteCheck(check.id)}
-                                  className="p-2 text-rose-500 hover:bg-rose-50 rounded-xl transition-all"
-                                  title="Supprimer"
-                                >
-                                  <Trash2 size={16} />
-                                </button>
-                                <div className="w-px h-4 bg-slate-100 mx-1" />
-                                <div className="relative">
-                                  <button className="p-2 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-xl transition-all">
-                                    <RefreshCw size={16} />
-                                  </button>
-                                  <select 
-                                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
-                                    value={check.status}
-                                    onChange={(e) => handleUpdateCheckStatus(check.id, e.target.value as any)}
-                                    title="Changer le statut"
-                                  >
-                                    <option value="pending">Encours</option>
-                                    <option value="paid">Encaissé</option>
-                                    <option value="cancelled">Impayé</option>
-                                  </select>
-                                </div>
-                              </div>
-                            </td>
+                {/* Detailed Table / Mobile Cards */}
+                <div className="space-y-4">
+                  <div className="hidden md:block bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-start border-collapse">
+                        <thead>
+                          <tr className="bg-slate-50/50">
+                            <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">{t('dates')}</th>
+                            <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-start">{t('numType')}</th>
+                            <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-start">{t('tierBank')}</th>
+                            <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-start">{t('causeMotif')}</th>
+                            <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-end">{t('amount')}</th>
+                            <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">{t('status')}</th>
+                            <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">{t('actions')}</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {paginatedClientChecks.map((check) => (
+                            <tr key={check.id} className="hover:bg-slate-50/50 transition-colors group">
+                              <td className="px-6 py-4">
+                                <div className="space-y-1">
+                                  {check.paymentDate && (
+                                    <p className="text-[10px] text-slate-400 uppercase font-medium">
+                                      Date de paiement: {format(new Date(check.paymentDate), 'dd/MM/yyyy')}
+                                    </p>
+                                  )}
+                                  <p className="text-xs font-semibold text-slate-700">
+                                    Échéance: {format(new Date(check.dueDate), 'dd/MM/yyyy')}
+                                  </p>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4">
+                                <span className="text-sm font-bold text-slate-900">{check.number}</span>
+                              </td>
+                              <td className="px-6 py-4">
+                                <span className="text-sm font-semibold text-brand-600">{check.beneficiary}</span>
+                              </td>
+                              <td className="px-6 py-4">
+                                <span className="text-sm text-slate-500 font-mono">{check.cause || '-'}</span>
+                              </td>
+                              <td className="px-6 py-4 text-right">
+                                <span className="text-sm font-bold text-slate-900">{check.amount.toLocaleString()} DH</span>
+                              </td>
+                              <td className="px-6 py-4 text-center">
+                                <StatusBadge status={check.status} t={t} />
+                              </td>
+                              <td className="px-6 py-4 text-center">
+                                <div className="flex items-center justify-center gap-1">
+                                  <button 
+                                    onClick={() => {
+                                      setEditingCheck(check);
+                                      setIsAddModalOpen(true);
+                                    }}
+                                    className="p-2 text-blue-500 hover:bg-blue-50 rounded-xl transition-all"
+                                    title="Modifier"
+                                  >
+                                    <Edit size={16} />
+                                  </button>
+                                  <button 
+                                    onClick={() => handleDeleteCheck(check.id)}
+                                    className="p-2 text-rose-500 hover:bg-rose-50 rounded-xl transition-all"
+                                    title="Supprimer"
+                                  >
+                                    <Trash2 size={16} />
+                                  </button>
+                                  <div className="w-px h-4 bg-slate-100 mx-1" />
+                                  <div className="relative">
+                                    <button className="p-2 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-xl transition-all">
+                                      <RefreshCw size={16} />
+                                    </button>
+                                    <select 
+                                      className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
+                                      value={check.status}
+                                      onChange={(e) => handleUpdateCheckStatus(check.id, e.target.value as any)}
+                                      title="Changer le statut"
+                                    >
+                                      <option value="pending">Encours</option>
+                                      <option value="paid">Encaissé</option>
+                                      <option value="cancelled">Impayé</option>
+                                    </select>
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    <div className="p-6 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('totalProcessed')}:</span>
+                        <span className="text-sm font-bold text-brand-600">{totalClientValue.toLocaleString()} {t('dh')}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('noRecords')}:</span>
+                        <span className="text-sm font-bold text-slate-900">{clientChecks.length}</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="p-6 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('totalProcessed')}:</span>
-                      <span className="text-sm font-bold text-brand-600">{totalClientValue.toLocaleString()} {t('dh')}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('noRecords')}:</span>
-                      <span className="text-sm font-bold text-slate-900">{clientChecks.length}</span>
-                    </div>
+
+                  {/* Mobile Cards */}
+                  <div className="grid grid-cols-1 gap-4 md:hidden">
+                    {paginatedClientChecks.map(check => (
+                      <MobileCheckCard 
+                        key={check.id}
+                        check={check}
+                        onEdit={(c) => {
+                          setEditingCheck(c);
+                          setIsAddModalOpen(true);
+                        }}
+                        onDelete={handleDeleteCheck}
+                        onUpdateStatus={handleUpdateCheckStatus}
+                        t={t}
+                      />
+                    ))}
                   </div>
                 </div>
                 <Pagination 
@@ -1107,7 +1165,7 @@ export default function App() {
                 {!isLoading && (
                   <>
                 {/* Stats Grid */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                     <StatCard 
                       title={t('pendingClientValue')} 
                       value={pendingClientValue} 
@@ -1231,60 +1289,94 @@ export default function App() {
 
                 {/* Tables Section */}
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-                  <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                    <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+                  <div className="bg-white rounded-[32px] border border-slate-200/60 shadow-sm overflow-hidden">
+                    <div className="p-6 border-b border-slate-50 flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-slate-900">{t('upcomingClientChecks')}</h3>
-                        <span className="px-2 py-0.5 bg-brand-50 text-brand-600 text-xs font-bold rounded-full">
+                        <h3 className="font-black text-slate-900 tracking-tight">{t('upcomingClientChecks')}</h3>
+                        <span className="px-2 py-0.5 bg-brand-50 text-brand-600 text-[10px] font-black rounded-full uppercase">
                           {clientChecks.length}
                         </span>
                       </div>
                       <button 
                         onClick={() => setActiveTab('client-checks')}
-                        className="text-brand-600 text-sm font-medium hover:underline"
+                        className="text-brand-600 text-xs font-black uppercase tracking-widest hover:underline"
                       >
                         {t('viewAll')}
                       </button>
                     </div>
-                    <CheckTable 
-                      checks={clientChecks.slice(0, 6)} 
-                      onUpdateStatus={handleUpdateCheckStatus}
-                      onEdit={(check) => {
-                        setEditingCheck(check);
-                        setIsAddModalOpen(true);
-                      }}
-                      onDelete={handleDeleteCheck}
-                      showStatus={false}
-                      t={t}
-                    />
+                    <div className="hidden md:block">
+                      <CheckTable 
+                        checks={clientChecks.slice(0, 6)} 
+                        onUpdateStatus={handleUpdateCheckStatus}
+                        onEdit={(check) => {
+                          setEditingCheck(check);
+                          setIsAddModalOpen(true);
+                        }}
+                        onDelete={handleDeleteCheck}
+                        showStatus={false}
+                        t={t}
+                      />
+                    </div>
+                    <div className="md:hidden p-4 space-y-4">
+                      {clientChecks.slice(0, 3).map(check => (
+                        <MobileCheckCard 
+                          key={check.id}
+                          check={check}
+                          onEdit={(c) => {
+                            setEditingCheck(c);
+                            setIsAddModalOpen(true);
+                          }}
+                          onDelete={handleDeleteCheck}
+                          onUpdateStatus={handleUpdateCheckStatus}
+                          t={t}
+                        />
+                      ))}
+                    </div>
                   </div>
 
-                  <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                    <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+                  <div className="bg-white rounded-[32px] border border-slate-200/60 shadow-sm overflow-hidden">
+                    <div className="p-6 border-b border-slate-50 flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-slate-900">{t('upcomingSupplierChecks')}</h3>
-                        <span className="px-2 py-0.5 bg-rose-50 text-rose-600 text-xs font-bold rounded-full">
+                        <h3 className="font-black text-slate-900 tracking-tight">{t('upcomingSupplierChecks')}</h3>
+                        <span className="px-2 py-0.5 bg-rose-50 text-rose-600 text-[10px] font-black rounded-full uppercase">
                           {supplierChecks.length}
                         </span>
                       </div>
                       <button 
                         onClick={() => setActiveTab('supplier-checks')}
-                        className="text-brand-600 text-sm font-medium hover:underline"
+                        className="text-brand-600 text-xs font-black uppercase tracking-widest hover:underline"
                       >
                         {t('viewAll')}
                       </button>
                     </div>
-                    <CheckTable 
-                      checks={supplierChecks.slice(0, 6)} 
-                      onUpdateStatus={handleUpdateCheckStatus}
-                      onEdit={(check) => {
-                        setEditingCheck(check);
-                        setIsAddModalOpen(true);
-                      }}
-                      onDelete={handleDeleteCheck}
-                      showStatus={false}
-                      t={t}
-                    />
+                    <div className="hidden md:block">
+                      <CheckTable 
+                        checks={supplierChecks.slice(0, 6)} 
+                        onUpdateStatus={handleUpdateCheckStatus}
+                        onEdit={(check) => {
+                          setEditingCheck(check);
+                          setIsAddModalOpen(true);
+                        }}
+                        onDelete={handleDeleteCheck}
+                        showStatus={false}
+                        t={t}
+                      />
+                    </div>
+                    <div className="md:hidden p-4 space-y-4">
+                      {supplierChecks.slice(0, 3).map(check => (
+                        <MobileCheckCard 
+                          key={check.id}
+                          check={check}
+                          onEdit={(c) => {
+                            setEditingCheck(c);
+                            setIsAddModalOpen(true);
+                          }}
+                          onDelete={handleDeleteCheck}
+                          onUpdateStatus={handleUpdateCheckStatus}
+                          t={t}
+                        />
+                      ))}
+                    </div>
                   </div>
                 </div>
                   </>
@@ -1332,71 +1424,71 @@ export default function App() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="space-y-8"
+                className="space-y-6 md:space-y-8"
               >
-                <div className="bg-white p-8 rounded-[32px] border border-slate-200 shadow-sm">
-                  <h3 className="text-xl font-bold text-slate-900 mb-8">{t('language')}</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl">
+                <div className="bg-white p-6 md:p-8 rounded-[32px] border border-slate-200 shadow-sm">
+                  <h3 className="text-lg md:text-xl font-black text-slate-900 mb-6 md:mb-8 tracking-tight">{t('language')}</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6 max-w-2xl">
                     <button 
                       onClick={() => setLanguage('fr')}
                       className={cn(
-                        "flex items-center justify-between p-6 rounded-2xl border-2 transition-all group",
+                        "flex items-center justify-between p-4 md:p-6 rounded-2xl border-2 transition-all group active:scale-[0.98]",
                         language === 'fr' 
-                          ? "border-brand-500 bg-brand-50/50" 
+                          ? "border-brand-500 bg-brand-50/50 shadow-lg shadow-brand-100" 
                           : "border-slate-100 hover:border-brand-200 hover:bg-slate-50"
                       )}
                     >
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-3 md:gap-4">
                         <div className={cn(
-                          "w-12 h-12 rounded-xl flex items-center justify-center text-lg font-bold transition-colors",
+                          "w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center text-sm md:text-lg font-bold transition-colors",
                           language === 'fr' ? "bg-brand-500 text-white" : "bg-slate-100 text-slate-400 group-hover:bg-brand-100 group-hover:text-brand-600"
                         )}>
                           FR
                         </div>
                         <div className="text-left">
-                          <p className="font-bold text-slate-900">Français</p>
-                          <p className="text-xs text-slate-500">French Language</p>
+                          <p className="text-sm md:text-base font-bold text-slate-900">Français</p>
+                          <p className="text-[10px] md:text-xs text-slate-500">French Language</p>
                         </div>
                       </div>
-                      {language === 'fr' && <div className="w-6 h-6 bg-brand-500 rounded-full flex items-center justify-center"><CheckIcon className="text-white" size={14} /></div>}
+                      {language === 'fr' && <div className="w-5 h-5 md:w-6 md:h-6 bg-brand-500 rounded-full flex items-center justify-center"><CheckIcon className="text-white" size={12} /></div>}
                     </button>
 
                     <button 
                       onClick={() => setLanguage('ar')}
                       className={cn(
-                        "flex items-center justify-between p-6 rounded-2xl border-2 transition-all group",
+                        "flex items-center justify-between p-4 md:p-6 rounded-2xl border-2 transition-all group active:scale-[0.98]",
                         language === 'ar' 
-                          ? "border-brand-500 bg-brand-50/50" 
+                          ? "border-brand-500 bg-brand-50/50 shadow-lg shadow-brand-100" 
                           : "border-slate-100 hover:border-brand-200 hover:bg-slate-50"
                       )}
                     >
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-3 md:gap-4">
                         <div className={cn(
-                          "w-12 h-12 rounded-xl flex items-center justify-center text-lg font-bold transition-colors",
+                          "w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center text-sm md:text-lg font-bold transition-colors",
                           language === 'ar' ? "bg-brand-500 text-white" : "bg-slate-100 text-slate-400 group-hover:bg-brand-100 group-hover:text-brand-600"
                         )}>
                           AR
                         </div>
                         <div className="text-left">
-                          <p className="font-bold text-slate-900">العربية</p>
-                          <p className="text-xs text-slate-500">Arabic Language</p>
+                          <p className="text-sm md:text-base font-bold text-slate-900">العربية</p>
+                          <p className="text-[10px] md:text-xs text-slate-500">Arabic Language</p>
                         </div>
                       </div>
-                      {language === 'ar' && <div className="w-6 h-6 bg-brand-500 rounded-full flex items-center justify-center"><CheckIcon className="text-white" size={14} /></div>}
+                      {language === 'ar' && <div className="w-5 h-5 md:w-6 md:h-6 bg-brand-500 rounded-full flex items-center justify-center"><CheckIcon className="text-white" size={12} /></div>}
                     </button>
                   </div>
                 </div>
 
-                <div className="bg-white p-8 rounded-[32px] border border-slate-200 shadow-sm opacity-50 pointer-events-none">
-                  <h3 className="text-xl font-bold text-slate-900 mb-8">{t('profileSettings')}</h3>
+                <div className="bg-white p-6 md:p-8 rounded-[32px] border border-slate-200 shadow-sm opacity-50 pointer-events-none">
+                  <h3 className="text-lg md:text-xl font-black text-slate-900 mb-6 md:mb-8 tracking-tight">{t('profileSettings')}</h3>
                   <div className="space-y-6 max-w-xl">
-                    <div className="flex items-center gap-6">
-                      <div className="w-20 h-20 bg-slate-100 rounded-3xl flex items-center justify-center border-2 border-slate-200">
-                        <UserCircle className="text-slate-400" size={40} />
+                    <div className="flex flex-col sm:flex-row items-center gap-4 md:gap-6">
+                      <div className="w-16 h-16 md:w-20 md:h-20 bg-slate-100 rounded-3xl flex items-center justify-center border-2 border-slate-200">
+                        <UserCircle className="text-slate-400" size={32} />
                       </div>
-                      <button className="px-6 py-2.5 bg-slate-900 text-white rounded-xl text-sm font-semibold">Modifier la photo</button>
+                      <button className="w-full sm:w-auto px-6 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-bold uppercase tracking-widest">Modifier la photo</button>
                     </div>
-                    <div className="grid grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
                       <div className="space-y-2">
                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nom complet</label>
                         <input type="text" defaultValue="Admin User" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm" />
@@ -1518,6 +1610,132 @@ export default function App() {
   );
 }
 
+const MobileCheckCard: React.FC<{ 
+  check: Check, 
+  onEdit: (check: Check) => void, 
+  onDelete: (id: string) => void,
+  onUpdateStatus: (id: string, status: Check['status']) => void | Promise<void>,
+  t: (key: string) => any
+}> = ({ 
+  check, 
+  onEdit, 
+  onDelete, 
+  onUpdateStatus,
+  t 
+}) => {
+  return (
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4 relative overflow-hidden group active:scale-[0.98] transition-all"
+    >
+      <div className="flex justify-between items-start">
+        <div className="flex items-center gap-3">
+          <div className={cn(
+            "w-10 h-10 rounded-xl flex items-center justify-center shadow-sm",
+            check.type === 'client' ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"
+          )}>
+            <CreditCard size={20} />
+          </div>
+          <div>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('number')}</p>
+            <p className="text-sm font-bold text-slate-900">{check.number}</p>
+          </div>
+        </div>
+        <StatusBadge status={check.status} t={t} />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 pt-2">
+        <div>
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{t('beneficiary')}</p>
+          <p className="text-sm font-semibold text-brand-600 truncate">{check.beneficiary}</p>
+        </div>
+        <div className="text-right">
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{t('amount')}</p>
+          <p className="text-sm font-black text-slate-900">{check.amount.toLocaleString()} DH</p>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between pt-4 border-t border-slate-50">
+        <div className="flex items-center gap-2 text-slate-500">
+          <Calendar size={14} />
+          <span className="text-xs font-medium">{format(new Date(check.dueDate), 'dd/MM/yyyy')}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={() => onEdit(check)}
+            className="p-2 text-blue-500 hover:bg-blue-50 rounded-xl transition-all"
+          >
+            <Edit size={16} />
+          </button>
+          <button 
+            onClick={() => onDelete(check.id)}
+            className="p-2 text-rose-500 hover:bg-rose-50 rounded-xl transition-all"
+          >
+            <Trash2 size={16} />
+          </button>
+          <div className="relative">
+            <button className="p-2 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-xl transition-all">
+              <RefreshCw size={16} />
+            </button>
+            <select 
+              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
+              value={check.status}
+              onChange={(e) => onUpdateStatus(check.id, e.target.value as any)}
+            >
+              <option value="pending">{t('pending')}</option>
+              <option value="paid">{t('paid')}</option>
+              <option value="cancelled">{t('cancelled')}</option>
+              <option value="deposited">{t('deposited')}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+function BottomNav({ 
+  activeTab, 
+  onTabChange, 
+  t 
+}: { 
+  activeTab: string, 
+  onTabChange: (id: string) => void,
+  t: (key: string) => string
+}) {
+  const items = [
+    { id: 'dashboard', icon: LayoutDashboard, label: t('dashboard') },
+    { id: 'client-checks', icon: CreditCard, label: 'Clients' },
+    { id: 'supplier-checks', icon: CreditCard, label: 'Fourn.' },
+    { id: 'settings', icon: Settings, label: t('settings') },
+  ];
+
+  return (
+    <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg border-t border-slate-100 px-4 py-2 flex items-center justify-around md:hidden z-[45] pb-safe">
+      {items.map((item) => (
+        <button
+          key={item.id}
+          onClick={() => onTabChange(item.id)}
+          className={cn(
+            "flex flex-col items-center gap-1 p-2 rounded-xl transition-all",
+            activeTab === item.id ? "text-brand-600" : "text-slate-400"
+          )}
+        >
+          <item.icon size={20} className={cn(activeTab === item.id && "scale-110")} />
+          <span className="text-[10px] font-bold uppercase tracking-tighter">{item.label}</span>
+          {activeTab === item.id && (
+            <motion.div 
+              layoutId="bottom-nav-indicator"
+              className="w-1 h-1 bg-brand-600 rounded-full mt-0.5"
+            />
+          )}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function ClientsView({ 
   clients, 
   onAddClient, 
@@ -1545,47 +1763,48 @@ function ClientsView({
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h2 className="text-2xl lg:text-3xl font-bold text-slate-900 tracking-tight">{t('clients')}</h2>
-          <p className="text-sm lg:text-base text-slate-500 mt-1">{language === 'fr' ? 'Gérez votre base de données clients et leurs informations de contact.' : 'إدارة قاعدة بيانات الزبناء ومعلومات الاتصال الخاصة بهم.'}</p>
+          <h2 className="text-xl md:text-2xl lg:text-3xl font-black text-slate-900 tracking-tight">{t('clients')}</h2>
+          <p className="text-xs md:text-sm lg:text-base text-slate-500 mt-1">{language === 'fr' ? 'Gérez votre base de données clients.' : 'إدارة قاعدة بيانات الزبناء.'}</p>
         </div>
         <button 
           onClick={onAddClient}
-          className="flex items-center justify-center gap-2 bg-brand-600 text-white px-6 py-3 rounded-2xl text-sm font-bold hover:bg-brand-700 transition-all shadow-xl shadow-brand-200/50 active:scale-95"
+          className="flex items-center justify-center gap-2 bg-brand-600 text-white px-6 py-3.5 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-brand-700 transition-all shadow-xl shadow-brand-200/50 active:scale-95"
         >
-          <Plus size={20} />
+          <Plus size={18} />
           {t('addClient')}
         </button>
       </div>
 
       {/* Stats Quick View */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
         {[
           { label: t('totalClientValue'), value: clients.length, icon: Users, color: 'bg-blue-500' },
-          { label: language === 'fr' ? 'Nouveaux (30j)' : 'جديد (30 يوم)', value: clients.length > 0 ? 'Recents' : '0', icon: Plus, color: 'bg-emerald-500' },
-          { label: language === 'fr' ? 'Actifs' : 'نشط', value: clients.length, icon: CheckIcon, color: 'bg-orange-500' },
+          { label: language === 'fr' ? 'Nouveaux' : 'جديد', value: clients.length > 0 ? 'Recents' : '0', icon: Plus, color: 'bg-emerald-500' },
+          { label: language === 'fr' ? 'Actifs' : 'نشط', value: clients.length, icon: CheckIcon, color: 'bg-orange-500', className: 'sm:col-span-2 md:col-span-1' },
         ].map((stat, i) => (
-          <div key={i} className="bg-white p-6 rounded-[24px] border border-slate-200/60 shadow-sm flex items-center gap-4">
-            <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg", stat.color)}>
-              <stat.icon size={22} />
+          <div key={i} className={cn("bg-white p-5 md:p-6 rounded-[24px] border border-slate-200/60 shadow-sm flex items-center gap-4", stat.className)}>
+            <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg shrink-0", stat.color)}>
+              <stat.icon size={24} />
             </div>
-            <div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{stat.label}</p>
-              <p className="text-2xl font-bold text-slate-900">{stat.value}</p>
+            <div className="min-w-0">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest truncate">{stat.label}</p>
+              <p className="text-xl md:text-2xl font-black text-slate-900">{stat.value}</p>
             </div>
           </div>
         ))}
       </div>
 
       {/* Clients Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
         {clients.map((client) => (
           <motion.div 
             key={client.id}
             whileHover={{ y: -4 }}
-            className="bg-white p-6 rounded-[32px] border border-slate-200/60 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 transition-all group relative overflow-hidden"
+            className="bg-white p-5 md:p-6 rounded-[32px] border border-slate-200/60 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 transition-all group relative overflow-hidden active:scale-[0.98]"
           >
             <div className={cn(
-              "absolute top-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity z-10",
+              "absolute top-0 p-4 transition-opacity z-10",
+              "opacity-0 group-hover:opacity-100 md:opacity-0",
               isRTL ? "left-0" : "right-0"
             )}>
               <div className="flex items-center gap-1 bg-white/80 backdrop-blur-sm p-1 rounded-xl border border-slate-100 shadow-sm">
@@ -1595,7 +1814,6 @@ function ClientsView({
                     onEditClient(client);
                   }}
                   className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-all"
-                  title="Modifier"
                 >
                   <Edit size={16} />
                 </button>
@@ -1605,7 +1823,6 @@ function ClientsView({
                     onDeleteClient(client.id);
                   }}
                   className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition-all"
-                  title="Supprimer"
                 >
                   <Trash2 size={16} />
                 </button>
@@ -1613,36 +1830,36 @@ function ClientsView({
             </div>
             
             <div className="flex items-start gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 shrink-0 group-hover:bg-brand-50 group-hover:text-brand-600 transition-colors">
-                <UserCircle size={32} />
+              <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 shrink-0 group-hover:bg-brand-50 group-hover:text-brand-600 transition-colors">
+                <UserCircle size={28} className="md:w-8 md:h-8" />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="text-lg font-bold text-slate-900 truncate">{client.name}</h3>
-                <div className="mt-3 space-y-2">
+                <h3 className="text-base md:text-lg font-black text-slate-900 truncate tracking-tight">{client.name}</h3>
+                <div className="mt-2 space-y-1.5">
                   <div className="flex items-center gap-2 text-slate-500">
-                    <div className="w-5 h-5 rounded-md bg-slate-50 flex items-center justify-center">
-                      <Phone size={12} />
-                    </div>
-                    <span className="text-xs font-medium">{client.phone || (language === 'fr' ? 'Non renseigné' : 'غير متوفر')}</span>
+                    <Phone size={12} className="shrink-0" />
+                    <span className="text-[11px] md:text-xs font-bold truncate">{client.phone || '---'}</span>
                   </div>
                   <div className="flex items-center gap-2 text-slate-500">
-                    <div className="w-5 h-5 rounded-md bg-slate-50 flex items-center justify-center">
-                      <Mail size={12} />
-                    </div>
-                    <span className="text-xs font-medium truncate">{client.email || (language === 'fr' ? 'Non renseigné' : 'غير متوفر')}</span>
+                    <Mail size={12} className="shrink-0" />
+                    <span className="text-[11px] md:text-xs font-bold truncate">{client.email || '---'}</span>
                   </div>
                 </div>
               </div>
             </div>
             
-            <div className="mt-6 pt-6 border-t border-slate-50 flex items-center justify-between">
-              <div className="flex -space-x-2">
-                <div className="w-7 h-7 rounded-full border-2 border-white bg-brand-50 flex items-center justify-center text-[10px] font-bold text-brand-600">
-                  {client.name.charAt(0)}
+            <div className="mt-5 pt-5 border-t border-slate-50 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-full bg-brand-50 flex items-center justify-center text-[10px] font-black text-brand-600">
+                  {client.name.charAt(0).toUpperCase()}
                 </div>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Client</span>
               </div>
-              <button className="text-[10px] font-bold text-brand-600 uppercase tracking-widest hover:underline">
-                Voir Profil
+              <button 
+                onClick={() => onEditClient(client)}
+                className="text-[10px] font-black text-brand-600 uppercase tracking-widest hover:underline md:hidden"
+              >
+                {t('edit')}
               </button>
             </div>
           </motion.div>
@@ -1651,12 +1868,12 @@ function ClientsView({
         {/* Add New Placeholder */}
         <button 
           onClick={onAddClient}
-          className="border-2 border-dashed border-slate-200 rounded-[32px] p-6 flex flex-col items-center justify-center gap-3 text-slate-400 hover:border-brand-300 hover:text-brand-500 hover:bg-brand-50/30 transition-all group min-h-[200px]"
+          className="border-2 border-dashed border-slate-200 rounded-[32px] p-6 flex flex-col items-center justify-center gap-3 text-slate-400 hover:border-brand-300 hover:text-brand-500 hover:bg-brand-50/30 transition-all group min-h-[160px] md:min-h-[200px]"
         >
-          <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center group-hover:bg-brand-100 transition-colors">
-            <Plus size={24} />
+          <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-slate-50 flex items-center justify-center group-hover:bg-brand-100 transition-colors">
+            <Plus size={20} className="md:w-6 md:h-6" />
           </div>
-          <span className="text-sm font-bold uppercase tracking-widest">Ajouter un client</span>
+          <span className="text-[10px] md:text-xs font-black uppercase tracking-widest">{t('addClient')}</span>
         </button>
       </div>
     </motion.div>
@@ -1864,47 +2081,48 @@ function SuppliersView({
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h2 className="text-2xl lg:text-3xl font-bold text-slate-900 tracking-tight">{t('suppliers')}</h2>
-          <p className="text-sm lg:text-base text-slate-500 mt-1">{language === 'fr' ? 'Gérez votre base de données fournisseurs et leurs informations de contact.' : 'إدارة قاعدة بيانات الموردين ومعلومات الاتصال الخاصة بهم.'}</p>
+          <h2 className="text-xl md:text-2xl lg:text-3xl font-black text-slate-900 tracking-tight">{t('suppliers')}</h2>
+          <p className="text-xs md:text-sm lg:text-base text-slate-500 mt-1">{language === 'fr' ? 'Gérez votre base de données fournisseurs.' : 'إدارة قاعدة بيانات الموردين.'}</p>
         </div>
         <button 
           onClick={onAddSupplier}
-          className="flex items-center justify-center gap-2 bg-brand-600 text-white px-6 py-3 rounded-2xl text-sm font-bold hover:bg-brand-700 transition-all shadow-xl shadow-brand-200/50 active:scale-95"
+          className="flex items-center justify-center gap-2 bg-brand-600 text-white px-6 py-3.5 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-brand-700 transition-all shadow-xl shadow-brand-200/50 active:scale-95"
         >
-          <Plus size={20} />
+          <Plus size={18} />
           {t('addSupplier')}
         </button>
       </div>
 
       {/* Stats Quick View */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
         {[
           { label: t('totalSupplierValue'), value: suppliers.length, icon: Users, color: 'bg-blue-500' },
-          { label: language === 'fr' ? 'Nouveaux (30j)' : 'جديد (30 يوم)', value: suppliers.length > 0 ? 'Recents' : '0', icon: Plus, color: 'bg-emerald-500' },
-          { label: language === 'fr' ? 'Actifs' : 'نشط', value: suppliers.length, icon: CheckIcon, color: 'bg-orange-500' },
+          { label: language === 'fr' ? 'Nouveaux' : 'جديد', value: suppliers.length > 0 ? 'Recents' : '0', icon: Plus, color: 'bg-emerald-500' },
+          { label: language === 'fr' ? 'Actifs' : 'نشط', value: suppliers.length, icon: CheckIcon, color: 'bg-orange-500', className: 'sm:col-span-2 md:col-span-1' },
         ].map((stat, i) => (
-          <div key={i} className="bg-white p-6 rounded-[24px] border border-slate-200/60 shadow-sm flex items-center gap-4">
-            <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg", stat.color)}>
-              <stat.icon size={22} />
+          <div key={i} className={cn("bg-white p-5 md:p-6 rounded-[24px] border border-slate-200/60 shadow-sm flex items-center gap-4", stat.className)}>
+            <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg shrink-0", stat.color)}>
+              <stat.icon size={24} />
             </div>
-            <div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{stat.label}</p>
-              <p className="text-2xl font-bold text-slate-900">{stat.value}</p>
+            <div className="min-w-0">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest truncate">{stat.label}</p>
+              <p className="text-xl md:text-2xl font-black text-slate-900">{stat.value}</p>
             </div>
           </div>
         ))}
       </div>
 
       {/* Suppliers Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
         {suppliers.map((supplier) => (
           <motion.div 
             key={supplier.id}
             whileHover={{ y: -4 }}
-            className="bg-white p-6 rounded-[32px] border border-slate-200/60 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 transition-all group relative overflow-hidden"
+            className="bg-white p-5 md:p-6 rounded-[32px] border border-slate-200/60 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 transition-all group relative overflow-hidden active:scale-[0.98]"
           >
             <div className={cn(
-              "absolute top-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity z-10",
+              "absolute top-0 p-4 transition-opacity z-10",
+              "opacity-0 group-hover:opacity-100 md:opacity-0",
               isRTL ? "left-0" : "right-0"
             )}>
               <div className="flex items-center gap-1 bg-white/80 backdrop-blur-sm p-1 rounded-xl border border-slate-100 shadow-sm">
@@ -1914,7 +2132,6 @@ function SuppliersView({
                     onEditSupplier(supplier);
                   }}
                   className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-all"
-                  title="Modifier"
                 >
                   <Edit size={16} />
                 </button>
@@ -1924,7 +2141,6 @@ function SuppliersView({
                     onDeleteSupplier(supplier.id);
                   }}
                   className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition-all"
-                  title="Supprimer"
                 >
                   <Trash2 size={16} />
                 </button>
@@ -1932,36 +2148,36 @@ function SuppliersView({
             </div>
             
             <div className="flex items-start gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 shrink-0 group-hover:bg-brand-50 group-hover:text-brand-600 transition-colors">
-                <UserCircle size={32} />
+              <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 shrink-0 group-hover:bg-brand-50 group-hover:text-brand-600 transition-colors">
+                <UserCircle size={28} className="md:w-8 md:h-8" />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="text-lg font-bold text-slate-900 truncate">{supplier.name}</h3>
-                <div className="mt-3 space-y-2">
+                <h3 className="text-base md:text-lg font-black text-slate-900 truncate tracking-tight">{supplier.name}</h3>
+                <div className="mt-2 space-y-1.5">
                   <div className="flex items-center gap-2 text-slate-500">
-                    <div className="w-5 h-5 rounded-md bg-slate-50 flex items-center justify-center">
-                      <Phone size={12} />
-                    </div>
-                    <span className="text-xs font-medium">{supplier.phone || 'Non renseigné'}</span>
+                    <Phone size={12} className="shrink-0" />
+                    <span className="text-[11px] md:text-xs font-bold truncate">{supplier.phone || '---'}</span>
                   </div>
                   <div className="flex items-center gap-2 text-slate-500">
-                    <div className="w-5 h-5 rounded-md bg-slate-50 flex items-center justify-center">
-                      <Mail size={12} />
-                    </div>
-                    <span className="text-xs font-medium truncate">{supplier.email || 'Non renseigné'}</span>
+                    <Mail size={12} className="shrink-0" />
+                    <span className="text-[11px] md:text-xs font-bold truncate">{supplier.email || '---'}</span>
                   </div>
                 </div>
               </div>
             </div>
             
-            <div className="mt-6 pt-6 border-t border-slate-50 flex items-center justify-between">
-              <div className="flex -space-x-2">
-                <div className="w-7 h-7 rounded-full border-2 border-white bg-brand-50 flex items-center justify-center text-[10px] font-bold text-brand-600">
-                  {supplier.name.charAt(0)}
+            <div className="mt-5 pt-5 border-t border-slate-50 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-full bg-brand-50 flex items-center justify-center text-[10px] font-black text-brand-600">
+                  {supplier.name.charAt(0).toUpperCase()}
                 </div>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Fournisseur</span>
               </div>
-              <button className="text-[10px] font-bold text-brand-600 uppercase tracking-widest hover:underline">
-                Voir Profil
+              <button 
+                onClick={() => onEditSupplier(supplier)}
+                className="text-[10px] font-black text-brand-600 uppercase tracking-widest hover:underline md:hidden"
+              >
+                {t('edit')}
               </button>
             </div>
           </motion.div>
@@ -1970,12 +2186,12 @@ function SuppliersView({
         {/* Add New Placeholder */}
         <button 
           onClick={onAddSupplier}
-          className="border-2 border-dashed border-slate-200 rounded-[32px] p-6 flex flex-col items-center justify-center gap-3 text-slate-400 hover:border-brand-300 hover:text-brand-500 hover:bg-brand-50/30 transition-all group min-h-[200px]"
+          className="border-2 border-dashed border-slate-200 rounded-[32px] p-6 flex flex-col items-center justify-center gap-3 text-slate-400 hover:border-brand-300 hover:text-brand-500 hover:bg-brand-50/30 transition-all group min-h-[160px] md:min-h-[200px]"
         >
-          <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center group-hover:bg-brand-100 transition-colors">
-            <Plus size={24} />
+          <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-slate-50 flex items-center justify-center group-hover:bg-brand-100 transition-colors">
+            <Plus size={20} className="md:w-6 md:h-6" />
           </div>
-          <span className="text-sm font-bold uppercase tracking-widest">Ajouter un fournisseur</span>
+          <span className="text-[10px] md:text-xs font-black uppercase tracking-widest">{t('addSupplier')}</span>
         </button>
       </div>
     </motion.div>
@@ -2216,16 +2432,16 @@ function AddCheckModal({ isOpen, onClose, onAddClient, onAddSupplier, clients, s
         className="bg-white w-full max-w-4xl rounded-[32px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
       >
         {/* Header */}
-        <div className="p-6 lg:p-8 flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-3">
-            <h2 className="text-xl lg:text-2xl font-bold text-slate-900">{initialData ? t('edit') : t('add')}</h2>
-            <span className="px-3 py-1 bg-brand-50 text-brand-600 text-[10px] font-bold uppercase tracking-wider rounded-full">
+        <div className="p-5 md:p-8 flex items-center justify-between shrink-0 border-b border-slate-50">
+          <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
+            <h2 className="text-lg md:text-2xl font-black text-slate-900 tracking-tight">{initialData ? t('edit') : t('add')}</h2>
+            <span className="w-fit px-3 py-1 bg-brand-50 text-brand-600 text-[10px] font-bold uppercase tracking-widest rounded-full">
               {formData.type === 'client' ? t('clientChecks') : t('supplierChecks')}
             </span>
           </div>
           <button 
             onClick={onClose}
-            className="p-2 text-slate-400 hover:bg-slate-100 rounded-full transition-colors"
+            className="p-2 text-slate-400 hover:bg-slate-100 rounded-full transition-all active:scale-90"
           >
             <Plus className="rotate-45" size={24} />
           </button>
@@ -2233,19 +2449,19 @@ function AddCheckModal({ isOpen, onClose, onAddClient, onAddSupplier, clients, s
 
         {/* Body */}
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto flex flex-col">
-          <div className="flex-1 px-6 lg:px-8 pb-8 space-y-8">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
+          <div className="flex-1 px-5 md:px-8 py-6 md:py-8 space-y-8">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
               {/* Left Column */}
-              <div className="lg:col-span-8 space-y-6 lg:space-y-8">
-                <div className="grid grid-cols-1 md:grid-cols-[1fr_1.15fr] gap-6 lg:gap-8">
+              <div className="lg:col-span-8 space-y-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   {/* Informations Document */}
                   <div className="space-y-6">
-                    <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('docInfo')}</h3>
+                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{t('docInfo')}</h3>
                     <div className="space-y-5">
                       <div className="grid grid-cols-2 gap-4">
                         <div className="flex flex-col gap-2">
                           <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{t('docType')}</label>
-                          <select className="w-full h-12 px-4 py-0 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all appearance-none cursor-pointer">
+                          <select className="w-full h-12 px-4 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold focus:outline-none focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all appearance-none cursor-pointer">
                             <option value="Chèque">{t('cheque')}</option>
                             <option value="Effet">{t('effet')}</option>
                           </select>
@@ -2258,7 +2474,7 @@ function AddCheckModal({ isOpen, onClose, onAddClient, onAddSupplier, clients, s
                             required
                             value={formData.number}
                             onChange={(e) => setFormData(prev => ({ ...prev, number: e.target.value }))}
-                            className="w-full h-12 px-4 py-0 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all" 
+                            className="w-full h-12 px-4 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold focus:outline-none focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all" 
                           />
                         </div>
                       </div>
@@ -2268,19 +2484,19 @@ function AddCheckModal({ isOpen, onClose, onAddClient, onAddSupplier, clients, s
                           type="text" 
                           value={formData.bank}
                           onChange={(e) => setFormData(prev => ({ ...prev, bank: e.target.value }))}
-                          className="w-full h-12 px-4 py-0 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all" 
+                          className="w-full h-12 px-4 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold focus:outline-none focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all" 
                         />
                       </div>
                       <div className="flex flex-col gap-2">
                         <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{t('signer')}</label>
-                        <input type="text" className="w-full h-12 px-4 py-0 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all" />
+                        <input type="text" className="w-full h-12 px-4 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold focus:outline-none focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all" />
                       </div>
                     </div>
                   </div>
 
                   {/* Acteurs & Finance */}
                   <div className="space-y-6">
-                    <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('actorsFinance')}</h3>
+                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{t('actorsFinance')}</h3>
                     <div className="space-y-5">
                       <div className="flex flex-col gap-2">
                         <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
@@ -2290,7 +2506,7 @@ function AddCheckModal({ isOpen, onClose, onAddClient, onAddSupplier, clients, s
                           <button 
                             type="button"
                             onClick={() => formData.type === 'client' ? onAddClient?.() : onAddSupplier?.()}
-                            className="p-2.5 bg-brand-600 text-white rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-200 shrink-0"
+                            className="p-3 bg-brand-600 text-white rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-200 shrink-0 active:scale-90"
                           >
                             <Plus size={20} />
                           </button>
@@ -2298,7 +2514,7 @@ function AddCheckModal({ isOpen, onClose, onAddClient, onAddSupplier, clients, s
                             required
                             value={formData.beneficiary}
                             onChange={(e) => setFormData(prev => ({ ...prev, beneficiary: e.target.value }))}
-                            className="w-full h-12 px-4 py-0 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all appearance-none cursor-pointer"
+                            className="w-full h-12 px-4 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold focus:outline-none focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all appearance-none cursor-pointer"
                           >
                             <option value="">{t('choose')}</option>
                             {formData.type === 'client' ? (
@@ -2313,7 +2529,7 @@ function AddCheckModal({ isOpen, onClose, onAddClient, onAddSupplier, clients, s
                           </select>
                         </div>
                         {((formData.type === 'client' && clients.length === 0) || (formData.type === 'supplier' && suppliers.length === 0)) && (
-                          <p className="text-[10px] text-rose-500 font-medium">
+                          <p className="text-[10px] text-rose-500 font-black uppercase tracking-wider">
                             {formData.type === 'client' ? t('noClientsWarning') : t('noSuppliersWarning')}
                           </p>
                         )}
@@ -2329,12 +2545,12 @@ function AddCheckModal({ isOpen, onClose, onAddClient, onAddSupplier, clients, s
                             value={formData.amount || ''}
                             onChange={(e) => setFormData(prev => ({ ...prev, amount: parseFloat(e.target.value) }))}
                             className={cn(
-                              "w-full h-12 px-4 py-0 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all",
+                              "w-full h-12 px-4 bg-slate-50 border border-slate-200 rounded-xl text-sm font-black focus:outline-none focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all",
                               isRTL ? "pl-12" : "pr-12"
                             )}
                           />
                           <span className={cn(
-                            "absolute top-1/2 -translate-y-1/2 text-xs font-bold text-brand-400",
+                            "absolute top-1/2 -translate-y-1/2 text-[10px] font-black text-brand-400 uppercase",
                             isRTL ? "left-4" : "right-4"
                           )}>{t('dh')}</span>
                         </div>
@@ -2347,7 +2563,7 @@ function AddCheckModal({ isOpen, onClose, onAddClient, onAddSupplier, clients, s
                             required
                             value={formData.paymentDate}
                             onChange={(e) => setFormData(prev => ({ ...prev, paymentDate: e.target.value }))}
-                            className="w-full h-12 px-3 py-0 bg-slate-50 border border-slate-200 rounded-xl text-[13px] focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all cursor-pointer" 
+                            className="w-full h-12 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:outline-none focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all cursor-pointer" 
                           />
                         </div>
                         <div className="flex flex-col gap-2">
@@ -2357,7 +2573,7 @@ function AddCheckModal({ isOpen, onClose, onAddClient, onAddSupplier, clients, s
                             required
                             value={formData.dueDate}
                             onChange={(e) => setFormData(prev => ({ ...prev, dueDate: e.target.value }))}
-                            className="w-full h-12 px-3 py-0 bg-slate-50 border border-slate-200 rounded-xl text-[13px] focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all cursor-pointer text-rose-500" 
+                            className="w-full h-12 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:outline-none focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all cursor-pointer text-rose-500" 
                           />
                         </div>
                       </div>
@@ -2366,7 +2582,7 @@ function AddCheckModal({ isOpen, onClose, onAddClient, onAddSupplier, clients, s
                         <select 
                           value={formData.status}
                           onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as Check['status'] }))}
-                          className="w-full h-12 px-4 py-0 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all appearance-none cursor-pointer"
+                          className="w-full h-12 px-4 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold focus:outline-none focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all appearance-none cursor-pointer"
                         >
                           <option value="pending">{t('pending')}</option>
                           <option value="paid">{t('paid')}</option>
@@ -2378,89 +2594,89 @@ function AddCheckModal({ isOpen, onClose, onAddClient, onAddSupplier, clients, s
                 </div>
 
                 {/* Désignation / Motif */}
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{t('designation')}</label>
                   <textarea 
                     rows={3} 
                     value={formData.cause}
                     onChange={(e) => setFormData(prev => ({ ...prev, cause: e.target.value }))}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all resize-none" 
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-medium focus:outline-none focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all resize-none" 
                   />
                 </div>
               </div>
 
               {/* Right Column - Pièce Jointe */}
-            <div className="lg:col-span-4 space-y-6">
-              <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('attachment')}</h3>
-              <input 
-                type="file" 
-                ref={fileInputRef}
-                onChange={handleFileChange}
-                className="hidden" 
-                accept="image/*,.pdf"
-              />
-              <div 
-                onClick={() => fileInputRef.current?.click()}
-                className={cn(
-                  "aspect-square w-full border-2 border-dashed rounded-[32px] flex flex-col items-center justify-center p-8 text-center transition-all cursor-pointer group relative overflow-hidden",
-                  selectedFile ? "border-brand-500 bg-brand-50/10" : "border-slate-200 hover:border-brand-300 hover:bg-brand-50/30"
-                )}
-              >
-                {selectedFile ? (
-                  <div className="w-full h-full flex flex-col items-center justify-center space-y-4">
-                    {previewUrl ? (
-                      <img src={previewUrl} alt="Preview" className="w-full h-full object-cover rounded-2xl" />
-                    ) : (
-                      <div className="w-20 h-20 bg-brand-100 rounded-2xl flex items-center justify-center text-brand-600">
-                        <FileText size={40} />
+              <div className="lg:col-span-4 space-y-6">
+                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{t('attachment')}</h3>
+                <input 
+                  type="file" 
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  className="hidden" 
+                  accept="image/*,.pdf"
+                />
+                <div 
+                  onClick={() => fileInputRef.current?.click()}
+                  className={cn(
+                    "aspect-square w-full border-2 border-dashed rounded-[40px] flex flex-col items-center justify-center p-8 text-center transition-all cursor-pointer group relative overflow-hidden",
+                    selectedFile ? "border-brand-500 bg-brand-50/10" : "border-slate-200 hover:border-brand-300 hover:bg-brand-50/30"
+                  )}
+                >
+                  {selectedFile ? (
+                    <div className="w-full h-full flex flex-col items-center justify-center space-y-4">
+                      {previewUrl ? (
+                        <img src={previewUrl} alt="Preview" className="w-full h-full object-cover rounded-3xl" />
+                      ) : (
+                        <div className="w-20 h-20 bg-brand-100 rounded-2xl flex items-center justify-center text-brand-600">
+                          <FileText size={40} />
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <button 
+                          onClick={removeFile}
+                          className="p-4 bg-white text-rose-500 rounded-full shadow-2xl hover:scale-110 transition-transform active:scale-90"
+                        >
+                          <X size={24} />
+                        </button>
                       </div>
-                    )}
-                    <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <button 
-                        onClick={removeFile}
-                        className="p-3 bg-white text-rose-500 rounded-full shadow-xl hover:scale-110 transition-transform"
-                      >
-                        <X size={24} />
-                      </button>
+                      {!previewUrl && (
+                        <p className="text-[10px] font-black text-slate-600 truncate w-full px-4 uppercase tracking-widest">
+                          {selectedFile.name}
+                        </p>
+                      )}
                     </div>
-                    {!previewUrl && (
-                      <p className="text-xs font-bold text-slate-600 truncate w-full px-4">
-                        {selectedFile.name}
+                  ) : (
+                    <>
+                      <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-300 group-hover:text-brand-400 transition-all group-hover:scale-110">
+                        <Plus size={32} />
+                      </div>
+                      <p className="mt-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] group-hover:text-brand-600 transition-colors">
+                        {t('addDocument')}
                       </p>
-                    )}
-                  </div>
-                ) : (
-                  <>
-                    <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-300 group-hover:text-brand-400 transition-colors">
-                      <Plus size={32} />
-                    </div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest group-hover:text-brand-600 transition-colors">
-                      {t('addDocument')}
-                    </p>
-                  </>
-                )}
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Footer */}
-        <div className="p-4 lg:p-8 border-t border-slate-100 flex items-center gap-3 lg:gap-4 shrink-0">
-          <button 
-            type="button"
-            onClick={onClose}
-            className="flex-1 px-4 lg:px-6 py-3 lg:py-4 bg-slate-50 text-slate-500 text-xs font-bold uppercase tracking-widest rounded-xl lg:rounded-2xl hover:bg-slate-100 transition-all"
-          >
-            {t('cancel')}
-          </button>
-          <button 
-            type="submit"
-            className="flex-[2] px-4 lg:px-6 py-3 lg:py-4 bg-brand-600 text-white text-xs font-bold uppercase tracking-widest rounded-xl lg:rounded-2xl hover:bg-brand-700 transition-all shadow-xl shadow-brand-200"
-          >
-            {initialData ? t('save') : t('add')}
-          </button>
-        </div>
-      </form>
+          {/* Footer */}
+          <div className="p-5 md:p-8 border-t border-slate-100 flex items-center gap-4 shrink-0 bg-slate-50/50">
+            <button 
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-6 py-4 bg-white text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl border border-slate-200 hover:bg-slate-50 transition-all active:scale-95"
+            >
+              {t('cancel')}
+            </button>
+            <button 
+              type="submit"
+              className="flex-[2] px-6 py-4 bg-brand-600 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-brand-700 transition-all shadow-xl shadow-brand-200 active:scale-95"
+            >
+              {initialData ? t('save') : t('add')}
+            </button>
+          </div>
+        </form>
       </motion.div>
     </div>
   );
@@ -2533,35 +2749,41 @@ function StatCard({ title, value, unit = 'DH', trend, icon: Icon, color }: {
   color: 'emerald' | 'rose' | 'brand' | 'amber'
 }) {
   const colorMap = {
-    emerald: 'bg-emerald-50 text-emerald-600 border-emerald-100',
-    rose: 'bg-rose-50 text-rose-600 border-rose-100',
-    brand: 'bg-brand-50 text-brand-600 border-brand-100',
-    amber: 'bg-amber-50 text-amber-600 border-amber-100',
+    emerald: 'bg-emerald-500 text-white shadow-emerald-200',
+    rose: 'bg-rose-500 text-white shadow-rose-200',
+    brand: 'bg-brand-500 text-white shadow-brand-200',
+    amber: 'bg-amber-500 text-white shadow-amber-200',
   };
 
   return (
-    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-      <div className="flex items-start justify-between mb-4">
-        <div className={cn("p-2.5 rounded-xl border", colorMap[color])}>
-          <Icon size={20} />
+    <motion.div 
+      whileHover={{ y: -4 }}
+      className="bg-white p-5 md:p-6 rounded-[32px] border border-slate-200/60 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 transition-all group"
+    >
+      <div className="flex items-center justify-between mb-5">
+        <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg transition-transform group-hover:scale-110", colorMap[color])}>
+          <Icon size={24} />
         </div>
-        <span className={cn(
-          "text-xs font-bold px-2 py-1 rounded-full",
-          trend.startsWith('+') ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"
-        )}>
-          {trend}
-        </span>
+        {trend !== '0' && trend !== '0%' && (
+          <div className={cn(
+            "flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider",
+            trend.startsWith('+') ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"
+          )}>
+            {trend.startsWith('+') ? <ArrowUpRight size={10} /> : <ArrowDownLeft size={10} />}
+            {trend}
+          </div>
+        )}
       </div>
       <div>
-        <p className="text-sm font-medium text-slate-500 mb-1">{title}</p>
-        <div className="flex items-baseline gap-1">
-          <h4 className="text-2xl font-bold text-slate-900">
+        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1.5 truncate">{title}</p>
+        <div className="flex items-baseline gap-1.5">
+          <h4 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight">
             {typeof value === 'number' ? value.toLocaleString() : value}
           </h4>
-          <span className="text-sm font-medium text-slate-400">{unit}</span>
+          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{unit}</span>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
