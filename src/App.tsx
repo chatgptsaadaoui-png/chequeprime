@@ -96,6 +96,9 @@ export default function App() {
   const [clientPage, setClientPage] = useState(1);
   const [supplierPage, setSupplierPage] = useState(1);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -231,6 +234,36 @@ export default function App() {
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
+  };
+
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword !== confirmPassword) {
+      showToast(t('passwordMismatch'), 'error');
+      return;
+    }
+    if (newPassword.length < 6) {
+      showToast(t('passwordTooShort'), 'error');
+      return;
+    }
+
+    setIsUpdatingPassword(true);
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) throw error;
+
+      showToast(t('successPasswordUpdate'), 'success');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (error: any) {
+      console.error('Error updating password:', error);
+      showToast(error.message || t('errorGeneric'), 'error');
+    } finally {
+      setIsUpdatingPassword(false);
+    }
   };
 
   const handleAddClient = async (newClient: Omit<Client, 'id'>) => {
@@ -1512,26 +1545,49 @@ export default function App() {
                   </div>
                 </div>
 
-                <div className="bg-white p-6 md:p-8 rounded-[32px] border border-slate-200 shadow-sm opacity-50 pointer-events-none">
-                  <h3 className="text-lg md:text-xl font-black text-slate-900 mb-6 md:mb-8 tracking-tight">{t('profileSettings')}</h3>
-                  <div className="space-y-6 max-w-xl">
-                    <div className="flex flex-col sm:flex-row items-center gap-4 md:gap-6">
-                      <div className="w-16 h-16 md:w-20 md:h-20 bg-slate-100 rounded-3xl flex items-center justify-center border-2 border-slate-200">
-                        <UserCircle className="text-slate-400" size={32} />
-                      </div>
-                      <button className="w-full sm:w-auto px-6 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-bold uppercase tracking-widest">Modifier la photo</button>
-                    </div>
+                <div className="bg-white p-6 md:p-8 rounded-[32px] border border-slate-200 shadow-sm">
+                  <h3 className="text-lg md:text-xl font-black text-slate-900 mb-6 md:mb-8 tracking-tight">{t('security')}</h3>
+                  <form onSubmit={handleUpdatePassword} className="space-y-6 max-w-xl">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
                       <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nom complet</label>
-                        <input type="text" defaultValue="Admin User" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm" />
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('newPassword')}</label>
+                        <input 
+                          type="password" 
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          placeholder="••••••••"
+                          className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all" 
+                          required
+                        />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Email</label>
-                        <input type="email" defaultValue="admin@checkflow.com" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm" />
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('confirmPassword')}</label>
+                        <input 
+                          type="password" 
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          placeholder="••••••••"
+                          className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all" 
+                          required
+                        />
                       </div>
                     </div>
-                  </div>
+                    <button 
+                      type="submit"
+                      disabled={isUpdatingPassword}
+                      className={cn(
+                        "w-full sm:w-auto px-8 py-3 bg-slate-900 text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-slate-800 transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2",
+                        isUpdatingPassword && "cursor-not-allowed"
+                      )}
+                    >
+                      {isUpdatingPassword ? (
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      ) : (
+                        <RefreshCw size={14} />
+                      )}
+                      {t('changePassword')}
+                    </button>
+                  </form>
                 </div>
               </motion.div>
             )}

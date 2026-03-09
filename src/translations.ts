@@ -77,7 +77,13 @@ export const translations = {
     successAdd: 'Ajouté avec succès',
     successUpdate: 'Mis à jour avec succès',
     successDelete: 'Supprimé avec succès',
+    successPasswordUpdate: 'Mot de passe mis à jour avec succès',
     errorGeneric: 'Une erreur est survenue',
+    passwordMismatch: 'Les mots de passe ne correspondent pas',
+    passwordTooShort: 'Le mot de passe doit contenir au moins 6 caractères',
+    changePassword: 'Changer le mot de passe',
+    newPassword: 'Nouveau mot de passe',
+    confirmPassword: 'Confirmer le mot de passe',
 
     // Login
     login: 'Connexion',
@@ -218,7 +224,13 @@ export const translations = {
     successAdd: 'تمت الإضافة بنجاح',
     successUpdate: 'تم التحديث بنجاح',
     successDelete: 'تم الحذف بنجاح',
+    successPasswordUpdate: 'تم تحديث كلمة المرور بنجاح',
     errorGeneric: 'حدث خطأ ما',
+    passwordMismatch: 'كلمات المرور غير متطابقة',
+    passwordTooShort: 'يجب أن تتكون كلمة المرور من 6 أحرف على الأقل',
+    changePassword: 'تغيير كلمة المرور',
+    newPassword: 'كلمة مرور جديدة',
+    confirmPassword: 'تأكيد كلمة المرور',
 
     // Login
     login: 'تسجيل الدخول',
