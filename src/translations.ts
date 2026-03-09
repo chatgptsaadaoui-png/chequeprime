@@ -54,7 +54,6 @@ export const translations = {
     pending: 'Encours',
     paid: 'Encaissé',
     cancelled: 'Impayé',
-    deposited: 'Déposé',
 
     // Settings
     language: 'Langue',
@@ -196,7 +195,6 @@ export const translations = {
     pending: 'قيد الانتظار',
     paid: 'تم الصرف',
     cancelled: 'غير مدفوع',
-    deposited: 'تم الإيداع',
 
     // Settings
     language: 'اللغة',

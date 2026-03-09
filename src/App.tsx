@@ -45,6 +45,7 @@ import {
 } from 'recharts';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { cn } from './lib/utils';
 import { Check, NavItem, Client, Supplier } from './types';
 import { translations, Language } from './translations';
@@ -95,6 +96,38 @@ export default function App() {
   const [clientPage, setClientPage] = useState(1);
   const [supplierPage, setSupplierPage] = useState(1);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const handleTabChange = (tabId: string) => {
+    setActiveTab(tabId);
+    navigate(`/${tabId}`);
+    setIsSidebarOpen(false);
+  };
+
+  // Sync state with URL
+  React.useEffect(() => {
+    const path = location.pathname.substring(1);
+    const navItems = NAV_ITEMS(t);
+    
+    if (user) {
+      if (path === 'login' || path === 'landing' || path === '') {
+        navigate('/dashboard', { replace: true });
+      } else if (navItems.some(item => item.id === path)) {
+        setActiveTab(path);
+      }
+    } else {
+      if (path === 'login') {
+        setShowLogin(true);
+      } else if (path === 'landing' || path === '') {
+        setShowLogin(false);
+        if (path === '') navigate('/landing', { replace: true });
+      } else {
+        // Protected routes
+        navigate('/landing', { replace: true });
+      }
+    }
+  }, [location.pathname, user]);
 
   // Filter States
   const [clientFilters, setClientFilters] = useState({
@@ -437,8 +470,7 @@ export default function App() {
       const statusMap: Record<string, string> = {
         'pending': 'pending',
         'cancelled': 'cancelled',
-        'paid': 'paid',
-        'deposited': 'deposited'
+        'paid': 'paid'
       };
       const matchesStatus = appliedClientFilters.status === 'all' || check.status === statusMap[appliedClientFilters.status];
       
@@ -462,8 +494,7 @@ export default function App() {
       const statusMap: Record<string, string> = {
         'pending': 'pending',
         'cancelled': 'cancelled',
-        'paid': 'paid',
-        'deposited': 'deposited'
+        'paid': 'paid'
       };
       const matchesStatus = appliedSupplierFilters.status === 'all' || check.status === statusMap[appliedSupplierFilters.status];
       
@@ -522,15 +553,24 @@ export default function App() {
     if (showLogin) {
       return (
         <Login 
-          onBack={() => setShowLogin(false)}
+          onBack={() => {
+            setShowLogin(false);
+            navigate('/landing');
+          }}
           language={language} 
         />
       );
     }
     return (
       <LandingPage 
-        onGetStarted={() => setShowLogin(true)}
-        onLogin={() => setShowLogin(true)}
+        onGetStarted={() => {
+          setShowLogin(true);
+          navigate('/login');
+        }}
+        onLogin={() => {
+          setShowLogin(true);
+          navigate('/login');
+        }}
         language={language}
       />
     );
@@ -579,10 +619,7 @@ export default function App() {
           {NAV_ITEMS(t).map((item) => (
             <button
               key={item.id}
-              onClick={() => {
-                setActiveTab(item.id);
-                setIsSidebarOpen(false);
-              }}
+              onClick={() => handleTabChange(item.id)}
               className={cn(
                 "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group relative",
                 activeTab === item.id 
@@ -609,8 +646,6 @@ export default function App() {
           </button>
         </div>
       </aside>
-
-      <BottomNav activeTab={activeTab} onTabChange={setActiveTab} t={t} />
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col overflow-hidden">
@@ -670,7 +705,7 @@ export default function App() {
         </header>
 
         {/* Scrollable Area */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-8 pb-24 md:pb-8">
+        <div className="flex-1 overflow-y-auto p-4 md:p-8 pb-8">
           <AnimatePresence mode="wait">
             {activeTab === 'supplier-checks' && (
               <motion.div
@@ -761,7 +796,6 @@ export default function App() {
                         <option value="pending">{t('pending')}</option>
                         <option value="paid">{t('paid')}</option>
                         <option value="cancelled">{t('cancelled')}</option>
-                        <option value="deposited">{t('deposited')}</option>
                       </select>
                     </div>
                     <div className="space-y-2">
@@ -999,7 +1033,6 @@ export default function App() {
                         <option value="pending">{t('pending')}</option>
                         <option value="paid">{t('paid')}</option>
                         <option value="cancelled">{t('cancelled')}</option>
-                        <option value="deposited">{t('deposited')}</option>
                       </select>
                     </div>
                     <div className="space-y-2">
@@ -1298,7 +1331,7 @@ export default function App() {
                         </span>
                       </div>
                       <button 
-                        onClick={() => setActiveTab('client-checks')}
+                        onClick={() => handleTabChange('client-checks')}
                         className="text-brand-600 text-xs font-black uppercase tracking-widest hover:underline"
                       >
                         {t('viewAll')}
@@ -1343,7 +1376,7 @@ export default function App() {
                         </span>
                       </div>
                       <button 
-                        onClick={() => setActiveTab('supplier-checks')}
+                        onClick={() => handleTabChange('supplier-checks')}
                         className="text-brand-600 text-xs font-black uppercase tracking-widest hover:underline"
                       >
                         {t('viewAll')}
@@ -1686,53 +1719,11 @@ const MobileCheckCard: React.FC<{
               <option value="pending">{t('pending')}</option>
               <option value="paid">{t('paid')}</option>
               <option value="cancelled">{t('cancelled')}</option>
-              <option value="deposited">{t('deposited')}</option>
             </select>
           </div>
         </div>
       </div>
     </motion.div>
-  );
-}
-
-function BottomNav({ 
-  activeTab, 
-  onTabChange, 
-  t 
-}: { 
-  activeTab: string, 
-  onTabChange: (id: string) => void,
-  t: (key: string) => string
-}) {
-  const items = [
-    { id: 'dashboard', icon: LayoutDashboard, label: t('dashboard') },
-    { id: 'client-checks', icon: CreditCard, label: 'Clients' },
-    { id: 'supplier-checks', icon: CreditCard, label: 'Fourn.' },
-    { id: 'settings', icon: Settings, label: t('settings') },
-  ];
-
-  return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg border-t border-slate-100 px-4 py-2 flex items-center justify-around md:hidden z-[45] pb-safe">
-      {items.map((item) => (
-        <button
-          key={item.id}
-          onClick={() => onTabChange(item.id)}
-          className={cn(
-            "flex flex-col items-center gap-1 p-2 rounded-xl transition-all",
-            activeTab === item.id ? "text-brand-600" : "text-slate-400"
-          )}
-        >
-          <item.icon size={20} className={cn(activeTab === item.id && "scale-110")} />
-          <span className="text-[10px] font-bold uppercase tracking-tighter">{item.label}</span>
-          {activeTab === item.id && (
-            <motion.div 
-              layoutId="bottom-nav-indicator"
-              className="w-1 h-1 bg-brand-600 rounded-full mt-0.5"
-            />
-          )}
-        </button>
-      ))}
-    </div>
   );
 }
 
@@ -2687,7 +2678,6 @@ function StatusBadge({ status, t }: { status: Check['status'], t: (key: string) 
     pending: "bg-brand-50 text-brand-600",
     paid: "bg-emerald-50 text-emerald-600",
     cancelled: "bg-rose-50 text-rose-600",
-    deposited: "bg-emerald-50 text-emerald-600",
   };
   
   return (

@@ -1,6 +1,6 @@
 import React from 'react';
 
-export type CheckStatus = 'pending' | 'deposited' | 'paid' | 'cancelled';
+export type CheckStatus = 'pending' | 'paid' | 'cancelled';
 
 export interface Check {
   id: string;
