@@ -51,6 +51,7 @@ import { Check, NavItem, Client, Supplier } from './types';
 import { translations, Language } from './translations';
 import Login from './components/Login';
 import LandingPage from './LandingPage';
+import { PDFReportModal } from './components/PDFReportModal';
 import { supabase } from './lib/supabase';
 
 // Nav Items
@@ -96,6 +97,8 @@ export default function App() {
   const [clientPage, setClientPage] = useState(1);
   const [supplierPage, setSupplierPage] = useState(1);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isPDFModalOpen, setIsPDFModalOpen] = useState(false);
+  const [pdfModalType, setPdfModalType] = useState<'client' | 'supplier'>('client');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
@@ -787,6 +790,17 @@ export default function App() {
                       <button className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl hover:bg-emerald-100 transition-all" title={t('export')}>
                         <Download size={18} />
                       </button>
+                      <button 
+                        onClick={() => {
+                          setPdfModalType('supplier');
+                          setIsPDFModalOpen(true);
+                        }}
+                        className="p-2.5 bg-rose-50 text-rose-600 rounded-xl hover:bg-rose-100 transition-all flex items-center gap-1.5" 
+                        title={t('downloadReportPdf')}
+                      >
+                        <FileText size={18} />
+                        <span className="text-xs font-bold hidden sm:inline">{t('downloadReport')}</span>
+                      </button>
                       <button className="p-2.5 bg-brand-50 text-brand-600 rounded-xl hover:bg-brand-100 transition-all" title={t('import')}>
                         <ArrowUpRight size={18} />
                       </button>
@@ -1023,6 +1037,17 @@ export default function App() {
                       </button>
                       <button className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl hover:bg-emerald-100 transition-all" title={t('export')}>
                         <Download size={18} />
+                      </button>
+                      <button 
+                        onClick={() => {
+                          setPdfModalType('client');
+                          setIsPDFModalOpen(true);
+                        }}
+                        className="p-2.5 bg-rose-50 text-rose-600 rounded-xl hover:bg-rose-100 transition-all flex items-center gap-1.5" 
+                        title={t('downloadReportPdf')}
+                      >
+                        <FileText size={18} />
+                        <span className="text-xs font-bold hidden sm:inline">{t('downloadReport')}</span>
                       </button>
                       <button className="p-2.5 bg-brand-50 text-brand-600 rounded-xl hover:bg-brand-100 transition-all" title={t('import')}>
                         <ArrowUpRight size={18} />
@@ -1648,6 +1673,15 @@ export default function App() {
         }} 
         onSave={handleAddSupplier}
         initialData={editingSupplier || undefined}
+        t={t}
+        language={language}
+      />
+
+      <PDFReportModal
+        isOpen={isPDFModalOpen}
+        onClose={() => setIsPDFModalOpen(false)}
+        checks={checks}
+        type={pdfModalType}
         t={t}
         language={language}
       />

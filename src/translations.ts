@@ -72,6 +72,14 @@ export const translations = {
     editSupplier: 'Modifier le fournisseur',
     confirmDelete: 'Confirmer la suppression',
     deleteWarning: 'Êtes-vous sûr de vouloir supprimer cet élément ? Cette action est irréversible.',
+    downloadReport: 'Télécharger le rapport',
+    downloadReportPdf: 'Rapport PDF des Chèques',
+    month: 'Mois',
+    year: 'Année',
+    generatePdf: 'Générer le PDF',
+    allYear: "Toute l'année",
+    shareWhatsApp: 'Envoyer par WhatsApp',
+    shareWhatsAppText: 'Bonjour, voici le rapport des chèques de ChequePrime pour la période de:',
     
     // Toast
     successAdd: 'Ajouté avec succès',
@@ -219,6 +227,14 @@ export const translations = {
     editSupplier: 'تعديل المورد',
     confirmDelete: 'تأكيد الحذف',
     deleteWarning: 'هل أنت متأكد من حذف هذا العنصر؟ هذا الإجراء لا يمكن التراجع عنه.',
+    downloadReport: 'تحميل التقرير التفصيلي',
+    downloadReportPdf: 'تقرير الشيكات كـ PDF',
+    month: 'الشهر',
+    year: 'السنة',
+    generatePdf: 'تحميل نسختك PDF',
+    allYear: 'طيلة السنة كاملة',
+    shareWhatsApp: 'إرسال عبر واتساب',
+    shareWhatsAppText: 'مرحباً، إليك تقرير الشيكات من ChequePrime للفترة التالية:',
 
     // Toast
     successAdd: 'تمت الإضافة بنجاح',
